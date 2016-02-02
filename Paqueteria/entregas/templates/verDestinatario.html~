@@ -1,0 +1,11 @@
+{% extends 'base.html' %} 
+
+{% block verDestinatario %}
+
+	{% for i in destinatario %}
+	<ul>
+	
+		<li>{{i.direccion}}</li>
+	</ul>
+	{% endfor%}
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %} 
+
+{% block destalleDestinatario %}
+
+	<h2>Detalles Destinatario</h2>
+	<ul>
+		<li>{{detalleDestinatario.direccion}}</li>
+		<li>{{detalleDestinatario.ciudad}}</li>
+		<li>{{detalleDestinatario.distancia}}</li>
+	</ul>
+
+{% endblock%}

@@ -1,0 +1,85 @@
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404, redirect, render_to_response
+from django.conf import settings
+from django.http import HttpResponseRedirect
+from .models import *
+from .forms import *
+from django.contrib.auth.forms import AuthenticationForm
+from django.template import RequestContext, loader
+from django.contrib.auth import authenticate, login, logout
+from django.views.generic.base import View
+from django.views.generic import TemplateView,RedirectView
+from django.views.generic.edit import FormView
+from django.core.urlresolvers import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+
+class LoginUser(FormView):
+    model = User
+    form_class = AuthenticationForm
+    template_name = 'login.html'
+    success_url = reverse_lazy('index')
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated():
+            return render(request, self.get_success_url())
+        else:
+            return super(LoginUser, self).get(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        login(self.request, form.get_user())
+        return redirect(self.get_success_url())
+
+class LogoutUser(RedirectView):
+    url = reverse_lazy('index')
+    settings.LOGIN_URL = '/login/'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(LogoutUser, self).dispatch(*args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        return super(LogoutUser, self).get(request, *args, **kwargs)
+
+def verDestinatario(request):
+	dest = Destinatario.objects.all()
+	context = {'destinatario':dest}
+	return render(request,'verDestinatario.html',context)
+
+def verDetalleDesti(request, destinatario_id):
+	dest = Destinatario.objects.get(pk=destinatario_id)
+	context = {'detalleDestinatario':dest}
+	return render(request, 'detalleDestinatario.html',context);
+
+class CreateUser(FormView):
+    template_name = 'register.html'
+    success_url = '/'
+    form_class = UserCreationForm
+ 
+    def is_valid(self,form):
+        user = User.objects.create_user(form.cleaned_data['username'],
+                                        form.cleaned_data['email'],
+                                        form.cleaned_data['password1'])
+        user.is_active = False
+        user.save()
+        return super(CreateUser, self).form_valid(form)
+
+
+class anadirDestinatario(View):
+	form_class = DestinatarioForm
+	template_name = 'addDestinatario.html'
+	
+	def get(self, request, *args, **kwargs):
+		formulario = self.form_class()
+		return render(request, self.template_name, {'formulario':formulario})
+	
+	def post(self, request, *args, **kwargs):
+		formulario = self.form_class(request.POST, request.FILES)
+		if formulario.is_valid():
+			formulario.save()
+			return HttpResponseRedirect('/')
+		return render(request,self.template_name, {'formulario':formulario})
+
+
